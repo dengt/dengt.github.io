@@ -1,0 +1,587 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Volatile与Synchronized机制 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="1. 如何理解volatile volatile的定义  被volatile修饰的属性会具备可见性（一个线程更新了值另一个线程可以读到修改后的值）   volatile的原理  被volatile修饰后， 在最终生成的汇编代码可以看到后面回多出lock 前缀指令。 而被lock修饰的指令就会使处理器具备以下两个特性：1. 每次写入会及时将当前缓冲行的数据刷回到内存。2.会使其他处理器处理器对这个属">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Volatile与Synchronized机制">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2016&#x2F;10&#x2F;12&#x2F;concurrency&#x2F;volatile%E4%B8%8Esynchronized&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="1. 如何理解volatile volatile的定义  被volatile修饰的属性会具备可见性（一个线程更新了值另一个线程可以读到修改后的值）   volatile的原理  被volatile修饰后， 在最终生成的汇编代码可以看到后面回多出lock 前缀指令。 而被lock修饰的指令就会使处理器具备以下两个特性：1. 每次写入会及时将当前缓冲行的数据刷回到内存。2.会使其他处理器处理器对这个属">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2016-10-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T07:56:56.205Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Concurrency">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/10/12/concurrency/volatile与synchronized/" title="Volatile与Synchronized机制" itemprop="url">Volatile与Synchronized机制</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2016-10-11T16:00:00.000Z" itemprop="datePublished"> Published 2016-10-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-如何理解volatile"><span class="toc-number">1.</span> <span class="toc-text">1. 如何理解volatile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-如何理解synchonized"><span class="toc-number">2.</span> <span class="toc-text">2. 如何理解synchonized</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-锁的升级与优化"><span class="toc-number">3.</span> <span class="toc-text">3. 锁的升级与优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-原子性操作"><span class="toc-number">4.</span> <span class="toc-text">4. 原子性操作</span></a></li></ol>
+		
+		</div>
+		
+		<h2 id="1-如何理解volatile"><a href="#1-如何理解volatile" class="headerlink" title="1. 如何理解volatile"></a>1. 如何理解volatile</h2><ol>
+<li><p>volatile的定义</p>
+<blockquote>
+<p>被volatile修饰的属性会具备可见性（一个线程更新了值另一个线程可以读到修改后的值）</p>
+</blockquote>
+</li>
+<li><p>volatile的原理</p>
+<blockquote>
+<p>被volatile修饰后， 在最终生成的汇编代码可以看到后面回多出lock 前缀指令。 而被lock修饰的指令就会使处理器具备以下两个特性：1. 每次写入会及时将当前缓冲行的数据刷回到内存。2.会使其他处理器处理器对这个属性的缓存失效</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="2-如何理解synchonized"><a href="#2-如何理解synchonized" class="headerlink" title="2. 如何理解synchonized"></a>2. 如何理解synchonized</h2><blockquote>
+<p>synchonized最通俗的理解就是锁， synchonized具备可见性，原子性。 它使得同一时刻只有一个线程能进入被synchonized修饰的代码区域。</p>
+</blockquote>
+<p>被synchonized修饰位置锁的实例对象分别有以下三种：</p>
+<ol>
+<li>静态方法锁的是类class对象</li>
+<li>实例方法锁的是当前实例对象</li>
+<li>方法块锁的是括号里面的对象</li>
+</ol>
+<p>synchonized机制：</p>
+<blockquote>
+<p>每个对象都有一个Monitor与之关联，synchonized是基于Monitor对象来实现同步。当一个线程持有Monitor后，其他线程会被堵塞直到持有montiro的线程退出才有机会获得monitor进入同步区域</p>
+</blockquote>
+<p>synchonized实现：</p>
+<blockquote>
+<p>如果是同步代码块，最终编译后会在代码块的开始结束分别插入monitorenter/moniterexit指令；如果是同步方法会在方法的修饰符后面增加ACC_SYNCHONIZED指令。 </p>
+</blockquote>
+<h2 id="3-锁的升级与优化"><a href="#3-锁的升级与优化" class="headerlink" title="3. 锁的升级与优化"></a>3. 锁的升级与优化</h2><ol>
+<li><p>为什么会有锁的升级</p>
+<blockquote>
+<p>主要是为了减少获得锁和释放锁带来的性能消耗；锁一共有四种状态，从低到高依次是：无锁-》偏向锁-》轻量级锁-》重量级锁。 需要注意的是，锁可以升级但不能降级。</p>
+</blockquote>
+</li>
+<li><p>偏向锁</p>
+</li>
+</ol>
+<ul>
+<li>定义<blockquote>
+<p>这个是官方根据统计，发现大多数情况下锁不存在竞争，总是由同一个线程获取锁，因此而引入来偏向锁。 偏向锁实现是在对象头和栈帧中锁记录里面存储当前线程id， 以后线程进入时，只需要验证线程id即可。 如果验证一致，则表示获得锁。否则，则使用cas将对象头指向当前线程id</p>
+</blockquote>
+</li>
+<li>偏向锁撤销<blockquote>
+<p>偏向锁基于一种惰性机制，在有其他线程竞争偏向锁时才会开始释放锁。 当偏向锁撤销时，如果其他线程占有锁且仍然活着，则让他执行。否则设置对象头成为无锁状态。</p>
+</blockquote>
+</li>
+<li>优势<blockquote>
+<p>加锁跟解锁不需要其他消耗，和普通方法执行效率相差无几，适用于单线程没有竞争的情况</p>
+</blockquote>
+</li>
+<li>劣势<blockquote>
+<p>如果锁存在竞争会有额外的锁撤销的消耗</p>
+</blockquote>
+</li>
+</ul>
+<ol start="3">
+<li>轻量级锁</li>
+</ol>
+<ul>
+<li>定义<blockquote>
+<p>轻量级锁是先在线程栈帧中创建一个锁记录，并将对象头markword复制到栈帧存储，然后使用cas将对象头的markword替换为栈帧的引用地址。（这里如果cas替换失败，将会进行自旋）</p>
+</blockquote>
+</li>
+<li>轻量级锁释放<blockquote>
+<p>解锁时，会使用cas将markword替换回对象头，如果成功表示没有竞争。如果失败表示存在竞争，就会升级为重量级锁。</p>
+</blockquote>
+</li>
+<li>优势<blockquote>
+<p>竞争线程不会阻塞（自旋），提高来程序的响应速度。适应于有并发，同步执行快</p>
+</blockquote>
+</li>
+<li>劣势<blockquote>
+<p>如果始终得不到锁，那自旋会消耗cpu。最终会膨胀为重量级锁</p>
+</blockquote>
+</li>
+</ul>
+<ol start="4">
+<li>重量级锁</li>
+</ol>
+<ul>
+<li>优势<blockquote>
+<p>线程竞争不会自旋，不会消耗cpu。适应于有并发，同步执行时间较长</p>
+</blockquote>
+</li>
+<li>劣势<blockquote>
+<p>竞争线程会被阻塞（上下文切换），响应时间慢。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="4-原子性操作"><a href="#4-原子性操作" class="headerlink" title="4. 原子性操作"></a>4. 原子性操作</h2><p>原子操作是基于系统提供的指令， 比如：compare and swap。</p>
+<p>原子操作存在的问题：</p>
+<ol>
+<li>ABA问题</li>
+<li>只能单个变量保证原子性</li>
+<li>如果竞争激烈会消耗cpu（原子操作的实现是比较原值替换为新值失败就会自旋直到成功）</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Concurrency/">Concurrency</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Concurrency/">Concurrency</a><a href="/tags/Java/">Java</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2016/10/12/concurrency/volatile%E4%B8%8Esynchronized/" data-title="Volatile与Synchronized机制 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/10/14/jvm/jvm自动内存管理机制-运行时区域/" title="JVM自动内存管理机制-运行时区域">
+  <strong>上一篇：</strong><br/>
+  <span>
+  JVM自动内存管理机制-运行时区域</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/09/14/concurrency/countdownlatch实现机制/"  title="CyclicBarrier机制">
+ <strong>下一篇：</strong><br/> 
+ <span>CyclicBarrier机制
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-如何理解volatile"><span class="toc-number">1.</span> <span class="toc-text">1. 如何理解volatile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-如何理解synchonized"><span class="toc-number">2.</span> <span class="toc-text">2. 如何理解synchonized</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-锁的升级与优化"><span class="toc-number">3.</span> <span class="toc-text">3. 锁的升级与优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-原子性操作"><span class="toc-number">4.</span> <span class="toc-text">4. 原子性操作</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

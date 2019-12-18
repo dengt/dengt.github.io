@@ -1,0 +1,505 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Future机制 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="概述向一个线程池提交任务执行时，可以通过submit方法返回一个Future对象。 Future就像一个占位符，当我们调用get方法会等待直到任务执行完成并返回。  如何实现Future实现底层类似于AQS，通过共享变量以及队列等待的方式来协作。主要从两个方面来阐述；  submit时，将Callable任务包装成FutureTask对象提交到线程池  1234567891011121314151">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Future机制">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2016&#x2F;09&#x2F;12&#x2F;concurrency&#x2F;future%E6%9C%BA%E5%88%B6&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="概述向一个线程池提交任务执行时，可以通过submit方法返回一个Future对象。 Future就像一个占位符，当我们调用get方法会等待直到任务执行完成并返回。  如何实现Future实现底层类似于AQS，通过共享变量以及队列等待的方式来协作。主要从两个方面来阐述；  submit时，将Callable任务包装成FutureTask对象提交到线程池  1234567891011121314151">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https:&#x2F;&#x2F;note.youdao.com&#x2F;src&#x2F;WEBRESOURCE0f0cd7962054905821401a9065600d04">
+<meta property="og:image" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2016&#x2F;09&#x2F;12&#x2F;concurrency&#x2F;future%E6%9C%BA%E5%88%B6&#x2F;WEBRESOURCE901e46248b8ad32c8e2b015c9c2b0ccd">
+<meta property="article:published_time" content="2016-09-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T07:56:56.239Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Concurrency">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;note.youdao.com&#x2F;src&#x2F;WEBRESOURCE0f0cd7962054905821401a9065600d04">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/09/12/concurrency/future机制/" title="Future机制" itemprop="url">Future机制</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2016-09-11T16:00:00.000Z" itemprop="datePublished"> Published 2016-09-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#概述"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何实现"><span class="toc-number">2.</span> <span class="toc-text">如何实现</span></a></li></ol>
+		
+		</div>
+		
+		<h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>向一个线程池提交任务执行时，可以通过submit方法返回一个Future对象。 Future就像一个占位符，当我们调用get方法会等待直到任务执行完成并返回。 </p>
+<h4 id="如何实现"><a href="#如何实现" class="headerlink" title="如何实现"></a>如何实现</h4><p>Future实现底层类似于AQS，通过共享变量以及队列等待的方式来协作。主要从两个方面来阐述；</p>
+<ol>
+<li>submit时，将Callable任务包装成FutureTask对象提交到线程池<br><img src="https://note.youdao.com/src/WEBRESOURCE0f0cd7962054905821401a9065600d04" alt="1576305332152.jpg"></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">java.util.concurrent.AbstractExecutorService#submit(java.lang.Runnable, T)</span><br><span class="line">public &lt;T&gt; Future&lt;T&gt; submit(Runnable task, T result) &#123;</span><br><span class="line">    if (task &#x3D;&#x3D; null) throw new NullPointerException();</span><br><span class="line">    &#x2F;&#x2F; 包装成FutureTask对象</span><br><span class="line">    RunnableFuture&lt;T&gt; ftask &#x3D; newTaskFor(task, result);</span><br><span class="line">    execute(ftask);</span><br><span class="line">    return ftask;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">线程池执行任务时，实际执行的是java.util.concurrent.FutureTask#run</span><br><span class="line">public void run() &#123;</span><br><span class="line">    if (state !&#x3D; NEW ||</span><br><span class="line">        !UNSAFE.compareAndSwapObject(this, runnerOffset,</span><br><span class="line">                                     null, Thread.currentThread()))</span><br><span class="line">        return;</span><br><span class="line">    try &#123;</span><br><span class="line">        Callable&lt;V&gt; c &#x3D; callable;</span><br><span class="line">        if (c !&#x3D; null &amp;&amp; state &#x3D;&#x3D; NEW) &#123;</span><br><span class="line">            V result;</span><br><span class="line">            boolean ran;</span><br><span class="line">            try &#123;</span><br><span class="line">                &#x2F;&#x2F; 调用我们自定义的任务run方法逻辑</span><br><span class="line">                result &#x3D; c.call();</span><br><span class="line">                ran &#x3D; true;</span><br><span class="line">            &#125; catch (Throwable ex) &#123;</span><br><span class="line">                result &#x3D; null;</span><br><span class="line">                ran &#x3D; false;</span><br><span class="line">                setException(ex);</span><br><span class="line">            &#125;</span><br><span class="line">            &#x2F;&#x2F; 执行完成后保存返回对象</span><br><span class="line">            if (ran)</span><br><span class="line">                set(result);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        &#x2F;&#x2F; runner must be non-null until state is settled to</span><br><span class="line">        &#x2F;&#x2F; prevent concurrent calls to run()</span><br><span class="line">        runner &#x3D; null;</span><br><span class="line">        &#x2F;&#x2F; state must be re-read after nulling runner to prevent</span><br><span class="line">        &#x2F;&#x2F; leaked interrupts</span><br><span class="line">        int s &#x3D; state;</span><br><span class="line">        if (s &gt;&#x3D; INTERRUPTING)</span><br><span class="line">            handlePossibleCancellationInterrupt(s);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">protected void set(V v) &#123;</span><br><span class="line">    if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) &#123;</span><br><span class="line">        &#x2F;&#x2F; 保存返回对象</span><br><span class="line">        outcome &#x3D; v;</span><br><span class="line">        UNSAFE.putOrderedInt(this, stateOffset, NORMAL); &#x2F;&#x2F; final state</span><br><span class="line">        &#x2F;&#x2F; 遍历唤醒调用get等待的线程</span><br><span class="line">        finishCompletion();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<ol start="2">
+<li>获取Future#get返回值时，会判断当前任务状态是否执行完成，没有则等待，否则返回（正常，异常，中断）<br><img src="WEBRESOURCE901e46248b8ad32c8e2b015c9c2b0ccd" alt="1576305460423.jpg"></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">FutureTask#get获取返回值</span><br><span class="line">public V get() throws InterruptedException, ExecutionException &#123;</span><br><span class="line">    int s &#x3D; state;</span><br><span class="line">    &#x2F;&#x2F; 任务没结束则等待</span><br><span class="line">    if (s &lt;&#x3D; COMPLETING)</span><br><span class="line">        s &#x3D; awaitDone(false, 0L);</span><br><span class="line">    &#x2F;&#x2F; 返回任务执行结果</span><br><span class="line">    return report(s);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private int awaitDone(boolean timed, long nanos)</span><br><span class="line">    throws InterruptedException &#123;</span><br><span class="line">    final long deadline &#x3D; timed ? System.nanoTime() + nanos : 0L;</span><br><span class="line">    WaitNode q &#x3D; null;</span><br><span class="line">    boolean queued &#x3D; false;</span><br><span class="line">    for (;;) &#123;</span><br><span class="line">        &#x2F;&#x2F; 中断处理</span><br><span class="line">        if (Thread.interrupted()) &#123;</span><br><span class="line">            removeWaiter(q);</span><br><span class="line">            throw new InterruptedException();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; 已经结束直接返回</span><br><span class="line">        int s &#x3D; state;</span><br><span class="line">        if (s &gt; COMPLETING) &#123;</span><br><span class="line">            if (q !&#x3D; null)</span><br><span class="line">                q.thread &#x3D; null;</span><br><span class="line">            return s;</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F; 已经启动（到这里实际我们自定义任务的run方法逻辑已经执行完成，只是在处理后续的保存返回值以及唤醒等待线程逻辑）</span><br><span class="line">        else if (s &#x3D;&#x3D; COMPLETING) &#x2F;&#x2F; cannot time out yet</span><br><span class="line">            Thread.yield();</span><br><span class="line">        else if (q &#x3D;&#x3D; null)</span><br><span class="line">            q &#x3D; new WaitNode();</span><br><span class="line">        else if (!queued)</span><br><span class="line">            queued &#x3D; UNSAFE.compareAndSwapObject(this, waitersOffset,</span><br><span class="line">                                                 q.next &#x3D; waiters, q);</span><br><span class="line">        else if (timed) &#123;</span><br><span class="line">        &#x2F;&#x2F; 超时等待</span><br><span class="line">            nanos &#x3D; deadline - System.nanoTime();</span><br><span class="line">            if (nanos &lt;&#x3D; 0L) &#123;</span><br><span class="line">                removeWaiter(q);</span><br><span class="line">                return state;</span><br><span class="line">            &#125;</span><br><span class="line">            LockSupport.parkNanos(this, nanos);</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#x2F;&#x2F; 等待</span><br><span class="line">            LockSupport.park(this);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private V report(int s) throws ExecutionException &#123;</span><br><span class="line">    Object x &#x3D; outcome;</span><br><span class="line">    &#x2F;&#x2F; 这里判断状态返回值（因为任务正常返回值跟异常对象都是保存在outcome里面）</span><br><span class="line">    if (s &#x3D;&#x3D; NORMAL)</span><br><span class="line">        return (V)x;</span><br><span class="line">    if (s &gt;&#x3D; CANCELLED)</span><br><span class="line">        throw new CancellationException();</span><br><span class="line">    throw new ExecutionException((Throwable)x);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Concurrency/">Concurrency</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Concurrency/">Concurrency</a><a href="/tags/Java/">Java</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2016/09/12/concurrency/future%E6%9C%BA%E5%88%B6/" data-title="Future机制 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/09/14/concurrency/countdownlatch实现机制/" title="CyclicBarrier机制">
+  <strong>上一篇：</strong><br/>
+  <span>
+  CyclicBarrier机制</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/09/10/concurrency/cyclicbarrier/"  title="CyclicBarrier机制">
+ <strong>下一篇：</strong><br/> 
+ <span>CyclicBarrier机制
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#概述"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何实现"><span class="toc-number">2.</span> <span class="toc-text">如何实现</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

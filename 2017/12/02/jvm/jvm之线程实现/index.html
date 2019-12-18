@@ -1,0 +1,510 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>JVM之线程实现 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="线程实现的三种方式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM之线程实现">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2017&#x2F;12&#x2F;02&#x2F;jvm&#x2F;jvm%E4%B9%8B%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="线程实现的三种方式">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-12-01T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T07:17:28.200Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Concurrency">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/12/02/jvm/jvm之线程实现/" title="JVM之线程实现" itemprop="url">JVM之线程实现</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2017-12-01T16:00:00.000Z" itemprop="datePublished"> Published 2017-12-02</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#线程实现的三种方式"><span class="toc-number">1.</span> <span class="toc-text">线程实现的三种方式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-内核线程"><span class="toc-number">1.1.</span> <span class="toc-text">1. 内核线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-用户线程"><span class="toc-number">1.2.</span> <span class="toc-text">2. 用户线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-用户线程、轻量级进程混合模式"><span class="toc-number">1.3.</span> <span class="toc-text">3. 用户线程、轻量级进程混合模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#java中的线程线程实现"><span class="toc-number">2.</span> <span class="toc-text">java中的线程线程实现</span></a></li></ol>
+		
+		</div>
+		
+		<h3 id="线程实现的三种方式"><a href="#线程实现的三种方式" class="headerlink" title="线程实现的三种方式"></a>线程实现的三种方式</h3><h4 id="1-内核线程"><a href="#1-内核线程" class="headerlink" title="1. 内核线程"></a>1. 内核线程</h4><blockquote>
+<p>内核线程就是由系统内核去创建，管理， 调度，并负责映射到各个处理器上面。程序一般通过轻量级进程的方式来实现内核线程， 每一个轻量级进程都由一个内核线程支持。 因此LWP与内核线程是1:1的</p>
+</blockquote>
+<p>总结一下：<br>使用轻量级进程是有内核线程支持的， 即时有一个轻量级进程阻塞也不会影响整个进程继续工作。 缺点是基于内核实现，所有的创建、同步都需要系统调用，另外需要再用户态来回切换。 还有就是需要内核线程支持，因此需要消耗一定的内核资源， 所以轻量级进程的数量是有限的。</p>
+<h4 id="2-用户线程"><a href="#2-用户线程" class="headerlink" title="2. 用户线程"></a>2. 用户线程</h4><blockquote>
+<p>用户线程是建立在用户态空间的， 线程的创建，同步、调度都在用户空间完成，也不需要切换到内核空间，所以非常快速且低消耗。 因此可以支持大规模的线程数量。这种模式进程与线程的对应关系是1：N的。</p>
+</blockquote>
+<p>总结一下：<br>用户线程的优点是不需要内核支持，所有操作都是用户程序自己处理。那缺点是， 由于系统把资源知识分配到进程层面， 需要自己将其映射到处理器上将会特别困难。</p>
+<h4 id="3-用户线程、轻量级进程混合模式"><a href="#3-用户线程、轻量级进程混合模式" class="headerlink" title="3. 用户线程、轻量级进程混合模式"></a>3. 用户线程、轻量级进程混合模式</h4><blockquote>
+<p>这种模式用户线程还是在用户空间， 创建、切换依然廉价。 另外借助轻量级进程作为用户线程与内核线程之间的桥梁， 这样就可以使用内核提供的线程调度以及处理器映射。用户线程通过轻量级进程来完成系统调用， 大大降低了整个进程完全被阻塞的风险以及困难点。这种模式下，用户线程与轻量级进程比例不定， 是n:m</p>
+</blockquote>
+<h3 id="java中的线程线程实现"><a href="#java中的线程线程实现" class="headerlink" title="java中的线程线程实现"></a>java中的线程线程实现</h3><p>目前java主要是依赖系统原生的线程模型。 因此，操作系统支持什么线程模型决定了java虚拟机的线程模型。 所以我们也可以看到Thread类中的方法都是native的。</p>
+<ol>
+<li><p>java线程的调度方式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">线程调度方式主要有两种，1协同式线程调度，2抢占式线程调度</span><br><span class="line"></span><br><span class="line">协同的方式是指，线程自己做主， 把自己事情做完了， 通知系统切换到其他线程。 这种方式的优点是线程自己控制切换，所以没有线程同步问题。缺点是，如果线程一直阻塞，那将程序一直阻塞在这里</span><br><span class="line"></span><br><span class="line">抢占式是指，每个线程将有系统来分配执行时间片。线程的切换不由线程自身控制。这种方式的有点是线程执行时间可控，不会因为一个线程的问题导致整个进程阻塞。</span><br><span class="line"></span><br><span class="line">java使用的是抢占式方式</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>java线程状态</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">主要有以下几种状态：</span><br><span class="line">1. NEW</span><br><span class="line">创建后，未start</span><br><span class="line"></span><br><span class="line">2. RUNNABLE</span><br><span class="line">这里可以细分为两种， 一种是就绪状态， 一种是获得时间片运行状态。</span><br><span class="line"></span><br><span class="line">3. Wating</span><br><span class="line">指无限期等待， 这种线程不会获得cpu执行时间。需等待其他线程唤醒。如：wait（）， thread.join(), LockSupport.park()</span><br><span class="line"></span><br><span class="line">4. Time Wating</span><br><span class="line">有限期等待，处于这种状态也不会获得cpu执行时间。不过无效其他线程唤醒，在一定时间后系统自动唤醒。 Thread.sleep(timeout), object.wait(timeout), Thread.join(timeout), LockSupport.parkNanos(timeout), LockSupport.parkUnit()</span><br><span class="line"></span><br><span class="line">5. Blocked</span><br><span class="line">阻塞状态与等待状态的区别是，阻塞状态等待排它锁。这个事件将在另一个持有锁的线程释放锁，而等待状态是由一定时间系统唤醒，或者执行唤醒动作</span><br><span class="line"></span><br><span class="line">6. Terminated</span><br></pre></td></tr></table></figure>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/JVM/">JVM</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/JVM/">JVM</a><a href="/tags/Concurrency/">Concurrency</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2017/12/02/jvm/jvm%E4%B9%8B%E7%BA%BF%E7%A8%8B%E5%AE%9E%E7%8E%B0/" data-title="JVM之线程实现 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/12/12/jvm/cms gc/" title="CMS GC">
+  <strong>上一篇：</strong><br/>
+  <span>
+  CMS GC</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/11/26/dubbo/failed to save registry store file 不断刷日志/"  title="Failed to save registry store file 不断刷日志">
+ <strong>下一篇：</strong><br/> 
+ <span>Failed to save registry store file 不断刷日志
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#线程实现的三种方式"><span class="toc-number">1.</span> <span class="toc-text">线程实现的三种方式</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-内核线程"><span class="toc-number">1.1.</span> <span class="toc-text">1. 内核线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-用户线程"><span class="toc-number">1.2.</span> <span class="toc-text">2. 用户线程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-用户线程、轻量级进程混合模式"><span class="toc-number">1.3.</span> <span class="toc-text">3. 用户线程、轻量级进程混合模式</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#java中的线程线程实现"><span class="toc-number">2.</span> <span class="toc-text">java中的线程线程实现</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,530 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>mysql语句是怎么执行的？ | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="一条查询语句的执行流程 连接器接收客户端连接，密码权限校验，获取权限列表 查询缓存，是否有缓存数据， 有的话直接返回。 分析器进行词法语法分析 优化器对语句进行优化， 索引等 执行器根据优化后的语句进行权限判断以及调用存储引擎接口进行执行   一条更新语句的执行流程 连接器接收客户端连接，密码权限校验，获取权限列表 分析器进行词法语法分析 优化器对语句进行优化， 索引等 执行器根据优化后的语句进行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql语句是怎么执行的？">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;10&#x2F;05&#x2F;mysql&#x2F;%E8%AF%AD%E5%8F%A5%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="一条查询语句的执行流程 连接器接收客户端连接，密码权限校验，获取权限列表 查询缓存，是否有缓存数据， 有的话直接返回。 分析器进行词法语法分析 优化器对语句进行优化， 索引等 执行器根据优化后的语句进行权限判断以及调用存储引擎接口进行执行   一条更新语句的执行流程 连接器接收客户端连接，密码权限校验，获取权限列表 分析器进行词法语法分析 优化器对语句进行优化， 索引等 执行器根据优化后的语句进行">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;10&#x2F;05&#x2F;mysql&#x2F;%E8%AF%AD%E5%8F%A5%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F&#x2F;05C6616C150E4A4FB9E3179F3DF3D423">
+<meta property="og:image" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;10&#x2F;05&#x2F;mysql&#x2F;%E8%AF%AD%E5%8F%A5%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F&#x2F;461B089F2AA04A64B7735C5DFD712F56">
+<meta property="article:published_time" content="2018-10-04T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T08:12:29.222Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;10&#x2F;05&#x2F;mysql&#x2F;%E8%AF%AD%E5%8F%A5%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F&#x2F;05C6616C150E4A4FB9E3179F3DF3D423">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/10/05/mysql/语句是怎么执行的？/" title="mysql语句是怎么执行的？" itemprop="url">mysql语句是怎么执行的？</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2018-10-04T16:00:00.000Z" itemprop="datePublished"> Published 2018-10-05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一条查询语句的执行流程"><span class="toc-number">1.</span> <span class="toc-text">一条查询语句的执行流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#一条更新语句的执行流程"><span class="toc-number">2.</span> <span class="toc-text">一条更新语句的执行流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#redo-log日志模块"><span class="toc-number">3.</span> <span class="toc-text">redo log日志模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#binlog日志模块"><span class="toc-number">4.</span> <span class="toc-text">binlog日志模块</span></a></li></ol>
+		
+		</div>
+		
+		<h3 id="一条查询语句的执行流程"><a href="#一条查询语句的执行流程" class="headerlink" title="一条查询语句的执行流程"></a>一条查询语句的执行流程</h3><ol>
+<li>连接器接收客户端连接，密码权限校验，获取权限列表</li>
+<li>查询缓存，是否有缓存数据， 有的话直接返回。</li>
+<li>分析器进行词法语法分析</li>
+<li>优化器对语句进行优化， 索引等</li>
+<li>执行器根据优化后的语句进行权限判断以及调用存储引擎接口进行执行</li>
+<li></li>
+</ol>
+<h3 id="一条更新语句的执行流程"><a href="#一条更新语句的执行流程" class="headerlink" title="一条更新语句的执行流程"></a>一条更新语句的执行流程</h3><ol>
+<li>连接器接收客户端连接，密码权限校验，获取权限列表</li>
+<li>分析器进行词法语法分析</li>
+<li>优化器对语句进行优化， 索引等</li>
+<li>执行器根据优化后的语句进行权限判断以及调用存储引擎接口进行执行<ul>
+<li>执行器去引擎先获取比如id=1的数据，如果数据页在内存中，则直接返回，否则先从磁盘读入内存再返回。</li>
+<li>执行器拿到数据并进行更新，比如加一。</li>
+<li>执行器将更新后的语句调用引擎处理，引擎先在内存中更新，同时将更新操作记录到redo log中。此时redo log状态处于prepare，然后告知执行器执行完成等待提交事务</li>
+<li>执行器收到通知， 生成这次更新的binlog。并将binlog写入到磁盘</li>
+<li>执行器再调用引擎提交接口，引擎提交redo log改成commit状态；更新完成</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sequenceDiagram</span><br><span class="line">执行器-&gt;&gt;引擎: 获取数据并进行更新操作</span><br><span class="line">引擎-&gt;&gt;执行器: 数据是否在内存，是直接返回，否从磁盘读取返回</span><br><span class="line">执行器-&gt;&gt;引擎: 执行更新将结果传给引擎更新内存，写redolog（prepare）</span><br><span class="line">引擎-&gt;&gt;执行器: 引擎通知执行器操作完成，并等待提交事务</span><br><span class="line">执行器-&gt;&gt;引擎: 生成更新binlog，并将binlog写入磁盘后再次调用引擎提交接口，提交刚刚的redo log</span><br><span class="line">引擎-&gt;&gt;执行器: 将redo log改为commit状态，更新完成</span><br></pre></td></tr></table></figure>
+<p><img src="05C6616C150E4A4FB9E3179F3DF3D423" alt="2e5bff4910ec189fe1ee6e2ecc7b4bbe"></p>
+<h3 id="redo-log日志模块"><a href="#redo-log日志模块" class="headerlink" title="redo log日志模块"></a>redo log日志模块</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">redo log相当于一块固定的缓冲区，可以循环写入。</span><br><span class="line">当一条更新语句执行时， 先写到redo log并更新内存数据。</span><br><span class="line"></span><br><span class="line">这里需要注意的是，write_pos到check_point之间的数据</span><br><span class="line">是可写入的区域，如果write_pos追上check_point的话，</span><br><span class="line">还是需要停下来将记录擦除前更新到数据文件，推进check_point。</span><br><span class="line"></span><br><span class="line">有了redo log， 就能做到crash_safe。 保证之前提交的记录不会丢失。</span><br></pre></td></tr></table></figure>
+<p><img src="461B089F2AA04A64B7735C5DFD712F56" alt="16a7950217b3f0f4ed02db5db59562a7"></p>
+<h3 id="binlog日志模块"><a href="#binlog日志模块" class="headerlink" title="binlog日志模块"></a>binlog日志模块</h3><ol>
+<li><p>由来</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql分为两大块，server跟存储引擎。redo log是innodb存储自有的。</span><br><span class="line">另外以前mysql也没有innodb，只有myisam引擎，然而myisam也没有crash-safe能力。</span><br><span class="line">mysql在server层，设计了binlog</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>binlog与redo log区别</p>
+<ul>
+<li>redo log是innodb引擎持有的；binlog是mysql在server层面实现的</li>
+<li>redo log记录的是物理日志，如在某个数据页上面走了上面修改；binlog是逻辑日志，比如给某个字段加1。</li>
+<li>redo log是固定大小循环写的，当空间满了后会进行覆盖；binlog是可以追加写的，只要达到一定binlog文件大小，会切换到下一个binlog文件继续写入。</li>
+</ul>
+</li>
+<li></li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Mysql/">Mysql</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Mysql/">Mysql</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2018/10/05/mysql/%E8%AF%AD%E5%8F%A5%E6%98%AF%E6%80%8E%E4%B9%88%E6%89%A7%E8%A1%8C%E7%9A%84%EF%BC%9F/" data-title="mysql语句是怎么执行的？ | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2018/10/10/mysql/关于join/" title="关于join">
+  <strong>上一篇：</strong><br/>
+  <span>
+  关于join</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/12/16/jvm/jvm之内存模型（jmm）/"  title="内存模型">
+ <strong>下一篇：</strong><br/> 
+ <span>内存模型
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一条查询语句的执行流程"><span class="toc-number">1.</span> <span class="toc-text">一条查询语句的执行流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#一条更新语句的执行流程"><span class="toc-number">2.</span> <span class="toc-text">一条更新语句的执行流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#redo-log日志模块"><span class="toc-number">3.</span> <span class="toc-text">redo log日志模块</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#binlog日志模块"><span class="toc-number">4.</span> <span class="toc-text">binlog日志模块</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

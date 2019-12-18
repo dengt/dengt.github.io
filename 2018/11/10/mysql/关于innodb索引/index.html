@@ -1,0 +1,515 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>关于innodb索引 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="概述innodb是索引组织表的， 数据是在组建索引树叶子节点下面。 索引模型hash表， btree， 数组等innodb主要支持前面两种 索引分类 innodb中， 主键索引也被称为聚镞索引, 叶子节点存储是的数据页， 数据页里面包含多条记录数据。 非主键索引被称为非聚镞索引， 其中非主键索引叶子节点存储的是主键索引的值。  回表在一颗非主键索引上面查询时， 由于叶子节点存储的是主键索引的值。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="关于innodb索引">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;11&#x2F;10&#x2F;mysql&#x2F;%E5%85%B3%E4%BA%8Einnodb%E7%B4%A2%E5%BC%95&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="概述innodb是索引组织表的， 数据是在组建索引树叶子节点下面。 索引模型hash表， btree， 数组等innodb主要支持前面两种 索引分类 innodb中， 主键索引也被称为聚镞索引, 叶子节点存储是的数据页， 数据页里面包含多条记录数据。 非主键索引被称为非聚镞索引， 其中非主键索引叶子节点存储的是主键索引的值。  回表在一颗非主键索引上面查询时， 由于叶子节点存储的是主键索引的值。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-11-09T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T08:12:29.532Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/11/10/mysql/关于innodb索引/" title="关于innodb索引" itemprop="url">关于innodb索引</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2018-11-09T16:00:00.000Z" itemprop="datePublished"> Published 2018-11-10</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#概述"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引模型"><span class="toc-number">2.</span> <span class="toc-text">索引模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引分类"><span class="toc-number">3.</span> <span class="toc-text">索引分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#回表"><span class="toc-number">4.</span> <span class="toc-text">回表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引要点"><span class="toc-number">5.</span> <span class="toc-text">索引要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立联合索引的考量"><span class="toc-number">6.</span> <span class="toc-text">建立联合索引的考量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#普通索引与唯一索引"><span class="toc-number">7.</span> <span class="toc-text">普通索引与唯一索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据库执行语句时为什么会选错索引"><span class="toc-number">8.</span> <span class="toc-text">数据库执行语句时为什么会选错索引</span></a></li></ol>
+		
+		</div>
+		
+		<h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>innodb是索引组织表的， 数据是在组建索引树叶子节点下面。</p>
+<h3 id="索引模型"><a href="#索引模型" class="headerlink" title="索引模型"></a>索引模型</h3><p>hash表， btree， 数组等<br>innodb主要支持前面两种</p>
+<h3 id="索引分类"><a href="#索引分类" class="headerlink" title="索引分类"></a>索引分类</h3><ol>
+<li>innodb中， 主键索引也被称为聚镞索引, 叶子节点存储是的数据页， 数据页里面包含多条记录数据。</li>
+<li>非主键索引被称为非聚镞索引， 其中非主键索引叶子节点存储的是主键索引的值。</li>
+</ol>
+<h3 id="回表"><a href="#回表" class="headerlink" title="回表"></a>回表</h3><p>在一颗非主键索引上面查询时， 由于叶子节点存储的是主键索引的值。 所以需要再通过主键索引搜索数据记录， 这个过程称为回表。</p>
+<h3 id="索引要点"><a href="#索引要点" class="headerlink" title="索引要点"></a>索引要点</h3><ol>
+<li>最左原则， 由于btree树模型索引项是通过创建索引字段的顺序来组织的， 当进行查询时， 需要按照从左到右的顺序进行查询。</li>
+<li>覆盖索引， 是指在查询需要的字段也在索引项中。 这时不需要再次回表查询数据。 </li>
+<li>索引下推， 在进行数据查询 只能用到左边索引项的字段时， 后面的条件也在索引项中， 这个时候可以通过索引项先判断是否符合。 这个过程称为索引下推。</li>
+</ol>
+<h3 id="建立联合索引的考量"><a href="#建立联合索引的考量" class="headerlink" title="建立联合索引的考量"></a>建立联合索引的考量</h3><ol>
+<li>当创建联合索引可以少维护一个索引时， 应当创建联合索引。</li>
+<li>联合索引字段的顺序理论上是最频繁查询的放在最前面</li>
+<li>当必须要创建两个索引时， 应当考虑空间，空间最小单独建立索引。比如： addr是字符串，age是int， 这个时候需要分别进行查询。 也需要一起查询， 应该创建index(addr,age) index(age)。</li>
+</ol>
+<h3 id="普通索引与唯一索引"><a href="#普通索引与唯一索引" class="headerlink" title="普通索引与唯一索引"></a>普通索引与唯一索引</h3><ol>
+<li>在进行查询时， 普通索引需要多判断一次， 唯一索引具备唯一性。 但是innodb索引是以数据页为单位的， 所以多判断一次并不影响</li>
+<li>更新时，由于唯一索引需要确保唯一， 不能在执行更新时使用change-buff。 而普通索引是可以的。</li>
+</ol>
+<h3 id="数据库执行语句时为什么会选错索引"><a href="#数据库执行语句时为什么会选错索引" class="headerlink" title="数据库执行语句时为什么会选错索引"></a>数据库执行语句时为什么会选错索引</h3><ol>
+<li>首先需要说明的是， 优化器在选择使用哪一个索引考量的目标是谁的代价最小。 需要考量（是否使用临时表， joinbuff， sortbuff， 索引数据区分度等）</li>
+<li>当数据在频繁更新， 索引统计基数不准时则会出现优化器选错索引的情况。 可以通过analyze table xxx来触发重新进行索引统计</li>
+<li>其他情况可以在语句中强制指定使用哪一个索引force index（a）来解决优化器选错索引的问题</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Mysql/">Mysql</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Mysql/">Mysql</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2018/11/10/mysql/%E5%85%B3%E4%BA%8Einnodb%E7%B4%A2%E5%BC%95/" data-title="关于innodb索引 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2018/11/12/mysql/关于order by/" title="关于order by">
+  <strong>上一篇：</strong><br/>
+  <span>
+  关于order by</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2018/10/18/mysql/关于count函数/"  title="关于count函数">
+ <strong>下一篇：</strong><br/> 
+ <span>关于count函数
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#概述"><span class="toc-number">1.</span> <span class="toc-text">概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引模型"><span class="toc-number">2.</span> <span class="toc-text">索引模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引分类"><span class="toc-number">3.</span> <span class="toc-text">索引分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#回表"><span class="toc-number">4.</span> <span class="toc-text">回表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#索引要点"><span class="toc-number">5.</span> <span class="toc-text">索引要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#建立联合索引的考量"><span class="toc-number">6.</span> <span class="toc-text">建立联合索引的考量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#普通索引与唯一索引"><span class="toc-number">7.</span> <span class="toc-text">普通索引与唯一索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#数据库执行语句时为什么会选错索引"><span class="toc-number">8.</span> <span class="toc-text">数据库执行语句时为什么会选错索引</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

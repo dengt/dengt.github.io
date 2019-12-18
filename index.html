@@ -1,0 +1,578 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta property="og:type" content="website">
+<meta property="og:title" content="Tom Blog">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:locale" content="en_US">
+<meta property="article:author" content="Deng tao">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main">
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/11/18/mysql/锁机制/" title="锁机制" itemprop="url">
+  
+    <h1 itemprop="name">锁机制</h1>
+    
+     
+           <p itemprop="description" >全局锁Flush tables with read lock(FTWRL) 命令会对整个实例进行加锁， 对ddl dml语句进行阻塞。主要用于对整个库做备份。
+如果存储引擎支持隔离级别，可以通过mysqldump -single-transaction参数基于一致性读来进行备份，</p>
+        
+    
+    <time datetime="2018-11-17T16:00:00.000Z" itemprop="datePublished">2018-11-18</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/11/12/mysql/关于order by/" title="关于order by" itemprop="url">
+  
+    <h1 itemprop="name">关于order by</h1>
+    
+     
+           <p itemprop="description" >概述order by 对数据进行排序有两种机制， 1全字段排序，2rowid方式
+1. 全字段排序方式例如
+1select city, name from t where city &amp;#x3D; &amp;#39;gz&amp;#39; order by name
+
+执行流程：
+
+先初始化线程的</p>
+        
+    
+    <time datetime="2018-11-11T16:00:00.000Z" itemprop="datePublished">2018-11-12</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/11/10/mysql/关于innodb索引/" title="关于innodb索引" itemprop="url">
+  
+    <h1 itemprop="name">关于innodb索引</h1>
+    
+     
+           <p itemprop="description" >概述innodb是索引组织表的， 数据是在组建索引树叶子节点下面。
+索引模型hash表， btree， 数组等innodb主要支持前面两种
+索引分类
+innodb中， 主键索引也被称为聚镞索引, 叶子节点存储是的数据页， 数据页里面包含多条记录数据。
+非主键索引被称为非聚镞索引，</p>
+        
+    
+    <time datetime="2018-11-09T16:00:00.000Z" itemprop="datePublished">2018-11-10</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/18/mysql/关于count函数/" title="关于count函数" itemprop="url">
+  
+    <h1 itemprop="name">关于count函数</h1>
+    
+     
+           <p itemprop="description" >在分析前，需要知道的是:
+
+
+server层是要什么给是吗
+innodb只给必要的值
+优化器只优化了count(*)
+
+count(*)优化器是做过优化的，不需要从存储引擎拉数据解析，所以只需要在server层判断释放为null累加
+count（1）遍历引擎整张表，但不会取值，在</p>
+        
+    
+    <time datetime="2018-10-17T16:00:00.000Z" itemprop="datePublished">2018-10-18</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/18/mysql/mysql索引总结/" title="mysql索引总结" itemprop="url">
+  
+    <h1 itemprop="name">mysql索引总结</h1>
+    
+     
+           <p itemprop="description" >目的， 解决的问题
+
+索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方
+
+原理
+
+通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型</p>
+        
+    
+    <time datetime="2018-10-17T16:00:00.000Z" itemprop="datePublished">2018-10-18</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/15/mysql/关于group by函数/" title="关于group by函数" itemprop="url">
+  
+    <h1 itemprop="name">关于group by函数</h1>
+    
+     
+           <p itemprop="description" >定义group by field是用来给数据做分组统计， 根据field分组。
+分组后的数据， 相当于一个临时表， 分组字段值唯一。
+例如select a, count(*) c from t group by a
+执行流程
+根据t表先创建临时表，表中的字段a 跟 c；
+根据t表</p>
+        
+    
+    <time datetime="2018-10-14T16:00:00.000Z" itemprop="datePublished">2018-10-15</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/12/concurrency/线程池/" title="线程池" itemprop="url">
+  
+    <h1 itemprop="name">线程池</h1>
+    
+     
+           <p itemprop="description" >1.什么是线程池？线程池是一种池化技术，线程池维护来一组线程，通过重复利用线程资源，提高任务响应速度以及进行管理。
+2.Java的线程池说一下，各个参数的作用，如何进行的?
+corePoolSize 核心线程数，当任务提交过来工作线程数量小于核心线程数则创建新的线程来执行当前任务</p>
+        
+    
+    <time datetime="2018-10-11T16:00:00.000Z" itemprop="datePublished">2018-10-12</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/10/mysql/关于join/" title="关于join" itemprop="url">
+  
+    <h1 itemprop="name">关于join</h1>
+    
+     
+           <p itemprop="description" >定义join主要是用来进行多表连接查询。 对于join，主要有两种算法：NLJ,BNL
+index nested-loop join (NLJ)例如：
+1select * from t1 , t2 where t1.a &amp;#x3D; t2.a
+
+执行流程：
+
+在t1表读取一行记录</p>
+        
+    
+    <time datetime="2018-10-09T16:00:00.000Z" itemprop="datePublished">2018-10-10</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2018/10/05/mysql/语句是怎么执行的？/" title="mysql语句是怎么执行的？" itemprop="url">
+  
+    <h1 itemprop="name">mysql语句是怎么执行的？</h1>
+    
+     
+           <p itemprop="description" >一条查询语句的执行流程
+连接器接收客户端连接，密码权限校验，获取权限列表
+查询缓存，是否有缓存数据， 有的话直接返回。
+分析器进行词法语法分析
+优化器对语句进行优化， 索引等
+执行器根据优化后的语句进行权限判断以及调用存储引擎接口进行执行
+
+
+一条更新语句的执行流程
+连接器接收客</p>
+        
+    
+    <time datetime="2018-10-04T16:00:00.000Z" itemprop="datePublished">2018-10-05</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2017/12/16/jvm/jvm之内存模型（jmm）/" title="内存模型" itemprop="url">
+  
+    <h1 itemprop="name">内存模型</h1>
+    
+     
+           <p itemprop="description" >1. 操作系统层面的内存模型
+操作系统层面1CPU处理器绝大多数运算都需要与内存交互，进行存储，读取数据等。 由于cpu运算速度跟内存存储设备之间存在几个数量级差异， 现代计算机在cpu与内存中间都加入了一层-》高速缓存来作为cpu与内存之间的缓冲。
+
+
+
+
+
+高速缓存
+1当cp</p>
+        
+    
+    <time datetime="2017-12-15T16:00:00.000Z" itemprop="datePublished">2017-12-16</time>
+  </a>
+</section>
+
+
+
+
+
+
+
+  <nav id="page-nav" class="clearfix unexpand">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/2/">Next&lt;span&gt;&lt;&#x2F;span&gt;</a>
+  </nav>
+
+</div>
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+ </html>

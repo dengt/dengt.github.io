@@ -1,0 +1,545 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>mysql索引总结 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="目的， 解决的问题  索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方  原理  通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型。  B+树  B+树就是相对平衡N叉树， 左子树小于父节点， 右子树大于父节点。 在B+树上面， 非子节点不存储数据，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mysql索引总结">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2018&#x2F;10&#x2F;18&#x2F;mysql&#x2F;mysql%E7%B4%A2%E5%BC%95%E6%80%BB%E7%BB%93&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="目的， 解决的问题  索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方  原理  通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型。  B+树  B+树就是相对平衡N叉树， 左子树小于父节点， 右子树大于父节点。 在B+树上面， 非子节点不存储数据，">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-10-17T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T08:12:29.318Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Mysql">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2018/10/18/mysql/mysql索引总结/" title="mysql索引总结" itemprop="url">mysql索引总结</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2018-10-17T16:00:00.000Z" itemprop="datePublished"> Published 2018-10-18</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			
+		
+		</div>
+		
+		<p><strong>目的， 解决的问题</strong></p>
+<blockquote>
+<p>索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方</p>
+</blockquote>
+<p><strong>原理</strong></p>
+<blockquote>
+<p>通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型。</p>
+</blockquote>
+<p><strong>B+树</strong></p>
+<blockquote>
+<p>B+树就是相对平衡N叉树， 左子树小于父节点， 右子树大于父节点。 在B+树上面， 非子节点不存储数据， 只存储数项以及指针。 子节点存储实际的数据值。</p>
+</blockquote>
+<blockquote>
+<p>基于B+树的特性， 一个节点的数据项存储范围越大， 树的高度就越低， 查询需要的IO次数也就越少。 </p>
+</blockquote>
+<p><strong>磁盘特性</strong></p>
+<blockquote>
+<p>在系统磁盘进行io读取时， 会有预读机制， 也就是读取磁盘的位置时， 相邻的位置也会很快被读到。 mysql innodb引擎是按页读取数据的， 每次io读取一页数据，如果索引字段足够小， 一次读取的内容就更多， 效率也就更高。</p>
+</blockquote>
+<p><strong>索引的几大原则</strong></p>
+<ol>
+<li>最左匹配原则</li>
+<li>前缀索引， 基于字段值前缀进行匹配</li>
+<li>应该挑选区分度高的数据字段建立索引</li>
+<li>索引字段的大小， 应该尽量用一些小字段数据长度建立索引， 这样一个数据页的索引值也就最多。</li>
+<li>覆盖索引， 对于联合索引， 如果查询的字段结果包含在索引里面， 不用进行回表查询， 直接返回</li>
+<li>尽量拓展索引， 而不是新建。 新建又要维护新的B+树， 浪费内存资源</li>
+<li></li>
+</ol>
+<p><strong>MVCC</strong></p>
+<blockquote>
+<p>mvcc是mysql中的多版本机制， 一行记录在同一时间会有多个版本。 mysql在每个事物启动时，都会有一个事物id， 是递增的。 对每行数据修改时会记录一个版本， 并且行版本的row_tx_id就是事物id。</p>
+</blockquote>
+<p><strong>undo日志</strong></p>
+<blockquote>
+<p>在mvcc中行数据的每个记录版本并不是物理上真实存在的， 而是每次根据当前版本以及undo log进行计算出来的。每次生成版本的时候，除了记录row_trx_id事物id还会记录上一个版本的信息, 这个就是undo log</p>
+</blockquote>
+<p><strong>可重复读实现</strong></p>
+<blockquote>
+<p>可重复读是基于事物的一致性视图。 在事物启动时， 会创建一个视图， 底层就是一个数组记录当前正在活跃的事物， 最小事物id为低水位， 最大事物id+1为高水位。 低水位以下的已经提交的是可见的， 低水位与高水位之间如果事物是在当前事物前创建并提交是可见的， 其他的情况都是不可见的。</p>
+</blockquote>
+<p><strong>读已提交</strong></p>
+<blockquote>
+<p>读已提交与可重复读类似， 区别在于每次操作都是重新创建一个视图。</p>
+</blockquote>
+<p><strong>redo与binlog</strong></p>
+<ul>
+<li>redo是innodb存储引擎实现的， 基于两阶段。基于4个文件每个1G大小循环读写的, 空间用完就需要清除循环写。redo具有crash-safe能力， 保证数据库异常时， 之前提交的记录不会丢失。 redo记录的是物理日志“在某个数据页做了什么修改”</li>
+<li>binlog是server层实现， 追加读写主要应用于归档、备份、还原。 binlog记录是逻辑日志“记录a+1”</li>
+<li>一次更新语句的执行流程：<blockquote>
+<ol>
+<li>连接器接受请求， 2. 语法词法分析，3.优化器进行索引抉择， 4. 执行器执行更新语句操作。5.存储引擎中当前数据页在内存中则直接更新记录redo prepare日志， 不在内存先加载数据并更新记录redo prepare日志， 6. 执行器记录binlog， 7. 存储引擎提交redo </li>
+</ol>
+</blockquote>
+</li>
+</ul>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Mysql/">Mysql</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Mysql/">Mysql</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2018/10/18/mysql/mysql%E7%B4%A2%E5%BC%95%E6%80%BB%E7%BB%93/" data-title="mysql索引总结 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2018/10/18/mysql/关于count函数/" title="关于count函数">
+  <strong>上一篇：</strong><br/>
+  <span>
+  关于count函数</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2018/10/15/mysql/关于group by函数/"  title="关于group by函数">
+ <strong>下一篇：</strong><br/> 
+ <span>关于group by函数
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ 
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

@@ -1,0 +1,506 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Failed to save registry store file 不断刷日志 | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="问题表现周六收到运维消息， 说生产某服务日志有115G， 硬盘报警。后面第一时间查询系统日志发现， 一直下滚下面的日志。出现的原因是因为dubbo服务地址缓存信息写入到文件失败 12345678910112017-11-25 10:16:22.273 WARN [DubboSaveRegistryCache-thread-1] AbstractRegistry.java:221 -  [DUBBO">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Failed to save registry store file 不断刷日志">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2017&#x2F;11&#x2F;26&#x2F;dubbo&#x2F;failed%20to%20save%20registry%20store%20file%20%E4%B8%8D%E6%96%AD%E5%88%B7%E6%97%A5%E5%BF%97&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="问题表现周六收到运维消息， 说生产某服务日志有115G， 硬盘报警。后面第一时间查询系统日志发现， 一直下滚下面的日志。出现的原因是因为dubbo服务地址缓存信息写入到文件失败 12345678910112017-11-25 10:16:22.273 WARN [DubboSaveRegistryCache-thread-1] AbstractRegistry.java:221 -  [DUBBO">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-11-25T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-18T08:03:03.063Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="dubbo">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/11/26/dubbo/failed to save registry store file 不断刷日志/" title="Failed to save registry store file 不断刷日志" itemprop="url">Failed to save registry store file 不断刷日志</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2017-11-25T16:00:00.000Z" itemprop="datePublished"> Published 2017-11-26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#问题表现"><span class="toc-number">1.</span> <span class="toc-text">问题表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查找问题"><span class="toc-number">2.</span> <span class="toc-text">查找问题</span></a></li></ol>
+		
+		</div>
+		
+		<h3 id="问题表现"><a href="#问题表现" class="headerlink" title="问题表现"></a>问题表现</h3><p>周六收到运维消息， 说生产某服务日志有115G， 硬盘报警。<br>后面第一时间查询系统日志发现， 一直下滚下面的日志。出现的原因是因为dubbo服务地址缓存信息写入到文件失败</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">2017-11-25 10:16:22.273 WARN [DubboSaveRegistryCache-thread-1] AbstractRegistry.java:221 -  [DUBBO] Failed to save registry store file, cause: null, dubbo version: 2.5.3, current host: 192.168.10.234</span><br><span class="line">java.nio.channels.OverlappingFileLockException</span><br><span class="line">        at sun.nio.ch.SharedFileLockTable.checkList(FileLockTable.java:255)</span><br><span class="line">        at sun.nio.ch.SharedFileLockTable.add(FileLockTable.java:152)</span><br><span class="line">        at sun.nio.ch.FileChannelImpl.tryLock(FileChannelImpl.java:1089)</span><br><span class="line">        at java.nio.channels.FileChannel.tryLock(FileChannel.java:1154)</span><br><span class="line">        at com.alibaba.dubbo.registry.support.AbstractRegistry.doSaveProperties(AbstractRegistry.java:191)</span><br><span class="line">        at com.alibaba.dubbo.registry.support.AbstractRegistry$SaveProperties.run(AbstractRegistry.java:150)</span><br><span class="line">        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)</span><br><span class="line">        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:615)</span><br><span class="line">        at java.lang.Thread.run(Thread.java:745)</span><br></pre></td></tr></table></figure>
+
+<h3 id="查找问题"><a href="#查找问题" class="headerlink" title="查找问题"></a>查找问题</h3><p>通过上面日志分析， 比较容易的找到了案发原因</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">public void doSaveProperties(long version) &#123;</span><br><span class="line">        if(version &lt; lastCacheChanged.get())&#123;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        if (file &#x3D;&#x3D; null) &#123;</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        Properties newProperties &#x3D; new Properties();</span><br><span class="line">        &#x2F;&#x2F; 保存之前先读取一遍，防止多个注册中心之间冲突</span><br><span class="line">        InputStream in &#x3D; null;</span><br><span class="line">        try &#123;</span><br><span class="line">            if (file.exists()) &#123;</span><br><span class="line">                in &#x3D; new FileInputStream(file);</span><br><span class="line">                newProperties.load(in);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Throwable e) &#123;</span><br><span class="line">            logger.warn(&quot;Failed to load registry store file, cause: &quot; + e.getMessage(), e);</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            if (in !&#x3D; null) &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    in.close();</span><br><span class="line">                &#125; catch (IOException e) &#123;</span><br><span class="line">                    logger.warn(e.getMessage(), e);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;     </span><br><span class="line">     &#x2F;&#x2F; 保存</span><br><span class="line">        try &#123;</span><br><span class="line">			newProperties.putAll(properties);</span><br><span class="line">            File lockfile &#x3D; new File(file.getAbsolutePath() + &quot;.lock&quot;);</span><br><span class="line">            if (!lockfile.exists()) &#123;</span><br><span class="line">            	lockfile.createNewFile();</span><br><span class="line">            &#125;</span><br><span class="line">            RandomAccessFile raf &#x3D; new RandomAccessFile(lockfile, &quot;rw&quot;);</span><br><span class="line">            try &#123;</span><br><span class="line">                FileChannel channel &#x3D; raf.getChannel();</span><br><span class="line">                try &#123;</span><br><span class="line">                    FileLock lock &#x3D; channel.tryLock();</span><br><span class="line">                	if (lock &#x3D;&#x3D; null) &#123;</span><br><span class="line">                        throw new IOException(&quot;Can not lock the registry cache file &quot; + file.getAbsolutePath() + &quot;, ignore and retry later, maybe multi java process use the file, please config: dubbo.registry.file&#x3D;xxx.properties&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                	&#x2F;&#x2F; 保存</span><br><span class="line">                    try &#123;</span><br><span class="line">                    	if (! file.exists()) &#123;</span><br><span class="line">                            file.createNewFile();</span><br><span class="line">                        &#125;</span><br><span class="line">                        FileOutputStream outputFile &#x3D; new FileOutputStream(file);  </span><br><span class="line">                        try &#123;</span><br><span class="line">                            newProperties.store(outputFile, &quot;Dubbo Registry Cache&quot;);</span><br><span class="line">                        &#125; finally &#123;</span><br><span class="line">                        	outputFile.close();</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125; finally &#123;</span><br><span class="line">                    	lock.release();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; finally &#123;</span><br><span class="line">                    channel.close();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; finally &#123;</span><br><span class="line">                raf.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Throwable e) &#123;</span><br><span class="line">            if (version &lt; lastCacheChanged.get()) &#123;</span><br><span class="line">                return;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                registryCacheExecutor.execute(new SaveProperties(lastCacheChanged.incrementAndGet()));</span><br><span class="line">            &#125;</span><br><span class="line">            logger.warn(&quot;Failed to save registry store file, cause: &quot; + e.getMessage(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>doSaveProperties方法在获取文件读写进程锁失败时， cath不断继续执行， 如果一直获取失败也就意味着死循环一直执行这段代码。</p>
+<p>问题好像很简单， 但是为什么会出现？</p>
+<p>后面经过排查：</p>
+<ol>
+<li>这台服务器部署了多个dubbo服务， 并且都是采用默认配置， 也就是说多有的dubbo服务都是用的同一个缓存文件。</li>
+<li>并且多个dubbo服务之间存在依赖消费关系， 服务状态一旦有变化， zookeeper会通知服务状态变更， 多个dubbo服务会去重新缓存， 造成冲突。</li>
+</ol>
+<p>解决方案：</p>
+<ol>
+<li>各服务单独配置注册信息缓存文件</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/dubbo/">dubbo</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/dubbo/">dubbo</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2017/11/26/dubbo/failed%20to%20save%20registry%20store%20file%20%E4%B8%8D%E6%96%AD%E5%88%B7%E6%97%A5%E5%BF%97/" data-title="Failed to save registry store file 不断刷日志 | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/12/02/jvm/jvm之线程实现/" title="JVM之线程实现">
+  <strong>上一篇：</strong><br/>
+  <span>
+  JVM之线程实现</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/11/16/jvm/jvm内存回收/"  title="内存回收">
+ <strong>下一篇：</strong><br/> 
+ <span>内存回收
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#问题表现"><span class="toc-number">1.</span> <span class="toc-text">问题表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#查找问题"><span class="toc-number">2.</span> <span class="toc-text">查找问题</span></a></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
