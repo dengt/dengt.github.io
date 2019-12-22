@@ -1,0 +1,539 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>认识IOC | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="一句话解释ioc IOC可以解藕业务对象之间的依赖关系绑定方式。 “不要找我，有需要我会通知你”  使用IOC获得了什么 对象依赖关系解藕 便于测试 统一了对象管理 便于拓展  IOC Provider的基本职责1. 对象的构建与管理在IOC场景里面，业务对象不再关心依赖对象如何构建，如何获取。但这部分工作总得有人来做，IOC承担来这个责任，将需要构建的对象逻辑从客户端业务对象剥离，避免这部分逻辑">
+<meta property="og:type" content="article">
+<meta property="og:title" content="认识IOC">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2015&#x2F;04&#x2F;01&#x2F;spring&#x2F;%E8%AE%A4%E8%AF%86IOC&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="一句话解释ioc IOC可以解藕业务对象之间的依赖关系绑定方式。 “不要找我，有需要我会通知你”  使用IOC获得了什么 对象依赖关系解藕 便于测试 统一了对象管理 便于拓展  IOC Provider的基本职责1. 对象的构建与管理在IOC场景里面，业务对象不再关心依赖对象如何构建，如何获取。但这部分工作总得有人来做，IOC承担来这个责任，将需要构建的对象逻辑从客户端业务对象剥离，避免这部分逻辑">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2015-03-31T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-22T05:27:58.833Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/04/01/spring/认识IOC/" title="认识IOC" itemprop="url">认识IOC</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2015-03-31T16:00:00.000Z" itemprop="datePublished"> Published 2015-04-01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一句话解释ioc"><span class="toc-number">1.</span> <span class="toc-text">一句话解释ioc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用IOC获得了什么"><span class="toc-number">2.</span> <span class="toc-text">使用IOC获得了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IOC-Provider的基本职责"><span class="toc-number">3.</span> <span class="toc-text">IOC Provider的基本职责</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-对象的构建与管理"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 对象的构建与管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-对象依赖关系的识别与绑定"><span class="toc-number">3.0.2.</span> <span class="toc-text">2. 对象依赖关系的识别与绑定</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IOC-如何管理对象间的依赖关系绑定"><span class="toc-number">4.</span> <span class="toc-text">IOC 如何管理对象间的依赖关系绑定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-IOC"><span class="toc-number">5.</span> <span class="toc-text">Spring IOC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#BeanFactory-amp-ApplicationContext"><span class="toc-number">5.1.</span> <span class="toc-text">BeanFactory &amp; ApplicationContext</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#容器背后的秘密"><span class="toc-number">5.2.</span> <span class="toc-text">容器背后的秘密</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#容器初始化"><span class="toc-number">5.2.1.</span> <span class="toc-text">容器初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Bean实例化"><span class="toc-number">5.2.2.</span> <span class="toc-text">Bean实例化</span></a></li></ol></li></ol></li></ol>
+		
+		</div>
+		
+		<h3 id="一句话解释ioc"><a href="#一句话解释ioc" class="headerlink" title="一句话解释ioc"></a>一句话解释ioc</h3><blockquote>
+<p>IOC可以解藕业务对象之间的依赖关系绑定方式。 “不要找我，有需要我会通知你”</p>
+</blockquote>
+<h3 id="使用IOC获得了什么"><a href="#使用IOC获得了什么" class="headerlink" title="使用IOC获得了什么"></a>使用IOC获得了什么</h3><ol>
+<li>对象依赖关系解藕</li>
+<li>便于测试</li>
+<li>统一了对象管理</li>
+<li>便于拓展</li>
+</ol>
+<h3 id="IOC-Provider的基本职责"><a href="#IOC-Provider的基本职责" class="headerlink" title="IOC Provider的基本职责"></a>IOC Provider的基本职责</h3><h5 id="1-对象的构建与管理"><a href="#1-对象的构建与管理" class="headerlink" title="1. 对象的构建与管理"></a>1. 对象的构建与管理</h5><p>在IOC场景里面，业务对象不再关心依赖对象如何构建，如何获取。但这部分工作总得有人来做，IOC承担来这个责任，将需要构建的对象逻辑从客户端业务对象剥离，避免这部分逻辑污染客户端业务对象的实现。</p>
+<h5 id="2-对象依赖关系的识别与绑定"><a href="#2-对象依赖关系的识别与绑定" class="headerlink" title="2. 对象依赖关系的识别与绑定"></a>2. 对象依赖关系的识别与绑定</h5><p>对象依赖关系的识别与绑定是IOC最重要的职责，不然任凭客户端业务对象如何“叫喊”也不能为其注入依赖。IOC通过识别依赖，通过不同的注入方式为其注入依赖，保证对象在使用时属于就绪状态</p>
+<h3 id="IOC-如何管理对象间的依赖关系绑定"><a href="#IOC-如何管理对象间的依赖关系绑定" class="headerlink" title="IOC 如何管理对象间的依赖关系绑定"></a>IOC 如何管理对象间的依赖关系绑定</h3><blockquote>
+<p>ioc毕竟不是人，不能自己学习思考，还是记录存储告诉它怎么去建立绑定关系</p>
+</blockquote>
+<ol>
+<li>基于属性文件或XML，XML有很强的自我描述性，也是一种不错的方式</li>
+<li>基于代码编程， 直接使用代码如果改动依赖关系将要重新编译。</li>
+<li>基于注解，通过识别注解来建立依赖关系的绑定。</li>
+</ol>
+<h3 id="Spring-IOC"><a href="#Spring-IOC" class="headerlink" title="Spring IOC"></a>Spring IOC</h3><blockquote>
+<p>spring ioc是一个轻量级ioc实现，并且还新增来许多特性，如bean管理，生命周期，AOP支持等。</p>
+</blockquote>
+<h4 id="BeanFactory-amp-ApplicationContext"><a href="#BeanFactory-amp-ApplicationContext" class="headerlink" title="BeanFactory &amp; ApplicationContext"></a>BeanFactory &amp; ApplicationContext</h4><blockquote>
+<p>BeanFactory提供了基础ioc的实现，AppliactionContext是包含BeanFactory并拓展了更多的特性如：统一资源，国际化，事件发布等。</p>
+</blockquote>
+<h4 id="容器背后的秘密"><a href="#容器背后的秘密" class="headerlink" title="容器背后的秘密"></a>容器背后的秘密</h4><blockquote>
+<p>平时在编程时，我们只需要配置完对象的依赖关系，创建BeanFactory或者ApplicationContext就能，通过getBean()就能获取准备好的对象，那具体如做的呢？</p>
+</blockquote>
+<h5 id="容器初始化"><a href="#容器初始化" class="headerlink" title="容器初始化"></a>容器初始化</h5><ol>
+<li>加载并解析各种依赖配置元数据（xml，注解方式等）比如XmlBeanDefinitionReader</li>
+<li>解析后统一封装成spring定义的BeanDefinition对象（包含来类型信息，scope，name等足够的信息）</li>
+<li>将BeanDefinition注册到BeanDefinitionRegister</li>
+</ol>
+<p><strong>容器拓展BeanFactoryPostProcess</strong></p>
+<blockquote>
+<p>BeanFactoryPostProcess可以对注册的BeanDefinition信息做修改，算是容器初始化最后一道工序。</p>
+</blockquote>
+<ol>
+<li>PropertyPlaceholderConfigurer 实现我们平时在bean定义使用占位符把值写在属性文件中</li>
+<li>CustomEditorConfigurer可以帮助我们在Bean定义配置里面把文本转化成具体的对象。</li>
+</ol>
+<h5 id="Bean实例化"><a href="#Bean实例化" class="headerlink" title="Bean实例化"></a>Bean实例化</h5><ol>
+<li>当我们getBean时，根据BeanDefinitionRegister注册的BeanDefinition信息，基于InstantiationStrategy采用不同的策略进行实例化</li>
+<li>对实例化的Bean用BeanWrapper包装，便于对其设置属性值</li>
+<li>如果bean实现来XxxAware接口，各种Aware接口调用</li>
+<li>调用BeanPostProcessor，对bean状态填充</li>
+<li>init-method方法调用</li>
+<li>destory-method方法调用</li>
+</ol>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Spring/">Spring</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Java/">Java</a><a href="/tags/Spring/">Spring</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2015/04/01/spring/%E8%AE%A4%E8%AF%86IOC/" data-title="认识IOC | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/04/08/spring/统一资源访问/" title="统一资源访问">
+  <strong>上一篇：</strong><br/>
+  <span>
+  统一资源访问</span>
+</a>
+</div>
+
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一句话解释ioc"><span class="toc-number">1.</span> <span class="toc-text">一句话解释ioc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#使用IOC获得了什么"><span class="toc-number">2.</span> <span class="toc-text">使用IOC获得了什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IOC-Provider的基本职责"><span class="toc-number">3.</span> <span class="toc-text">IOC Provider的基本职责</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-对象的构建与管理"><span class="toc-number">3.0.1.</span> <span class="toc-text">1. 对象的构建与管理</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-对象依赖关系的识别与绑定"><span class="toc-number">3.0.2.</span> <span class="toc-text">2. 对象依赖关系的识别与绑定</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#IOC-如何管理对象间的依赖关系绑定"><span class="toc-number">4.</span> <span class="toc-text">IOC 如何管理对象间的依赖关系绑定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-IOC"><span class="toc-number">5.</span> <span class="toc-text">Spring IOC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#BeanFactory-amp-ApplicationContext"><span class="toc-number">5.1.</span> <span class="toc-text">BeanFactory &amp; ApplicationContext</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#容器背后的秘密"><span class="toc-number">5.2.</span> <span class="toc-text">容器背后的秘密</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#容器初始化"><span class="toc-number">5.2.1.</span> <span class="toc-text">容器初始化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Bean实例化"><span class="toc-number">5.2.2.</span> <span class="toc-text">Bean实例化</span></a></li></ol></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

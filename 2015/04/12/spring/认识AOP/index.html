@@ -1,0 +1,534 @@
+
+ <!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>认识AOP | Tom Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="Deng tao">
+    
+
+    
+    <meta name="description" content="一句话解释AOP AOP（Aspect Oriented Programming）面向方面编程。关注业务流程中的横向（公共）逻辑，将其进行封装织入到对应的横向切入点位置。  静态AOP与动态AOP 静态AOP主要是基于编译器，将横向业务逻辑代码通过编译器织入到对应的横切点来实现,代表有AspectJ。优点在于最终织入后还是标准的class文件，不会有性能损失。缺点是织入到class如果要改动横向逻">
+<meta property="og:type" content="article">
+<meta property="og:title" content="认识AOP">
+<meta property="og:url" content="http:&#x2F;&#x2F;dengtao.com&#x2F;2015&#x2F;04&#x2F;12&#x2F;spring&#x2F;%E8%AE%A4%E8%AF%86AOP&#x2F;index.html">
+<meta property="og:site_name" content="Tom Blog">
+<meta property="og:description" content="一句话解释AOP AOP（Aspect Oriented Programming）面向方面编程。关注业务流程中的横向（公共）逻辑，将其进行封装织入到对应的横向切入点位置。  静态AOP与动态AOP 静态AOP主要是基于编译器，将横向业务逻辑代码通过编译器织入到对应的横切点来实现,代表有AspectJ。优点在于最终织入后还是标准的class文件，不会有性能损失。缺点是织入到class如果要改动横向逻">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http:&#x2F;&#x2F;note.youdao.com&#x2F;yws&#x2F;res&#x2F;13405&#x2F;WEBRESOURCEbfe8c78856ac338ddbe52d3ea6d2f7da">
+<meta property="og:image" content="http:&#x2F;&#x2F;note.youdao.com&#x2F;yws&#x2F;res&#x2F;13438&#x2F;WEBRESOURCE51d443f64f65867ba55b9063fb48c6f4">
+<meta property="article:published_time" content="2015-04-11T16:00:00.000Z">
+<meta property="article:modified_time" content="2019-12-22T05:28:31.627Z">
+<meta property="article:author" content="Deng tao">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http:&#x2F;&#x2F;note.youdao.com&#x2F;yws&#x2F;res&#x2F;13405&#x2F;WEBRESOURCEbfe8c78856ac338ddbe52d3ea6d2f7da">
+
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/%02.css">
+<link rel="stylesheet" href="/.css">
+
+<meta name="generator" content="Hexo 4.1.1"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.jpg" alt="Tom Blog" title="Tom Blog"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Tom Blog">Tom Blog</a></h1>
+				<h2 class="blog-motto">持续学习与实践拥护者</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="Menu">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="Search" />
+						<input type="hidden" name="q" value="site:dengtao.com">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/04/12/spring/认识AOP/" title="认识AOP" itemprop="url">认识AOP</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="Deng tao" target="_blank" itemprop="author">Deng tao</a>
+		
+  <p class="article-time">
+    <time datetime="2015-04-11T16:00:00.000Z" itemprop="datePublished"> Published 2015-04-12</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">Contents</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一句话解释AOP"><span class="toc-number">1.</span> <span class="toc-text">一句话解释AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#静态AOP与动态AOP"><span class="toc-number">2.</span> <span class="toc-text">静态AOP与动态AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Aop中的名词"><span class="toc-number">3.</span> <span class="toc-text">Aop中的名词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#动态代理"><span class="toc-number">4.</span> <span class="toc-text">动态代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-AOP"><span class="toc-number">5.</span> <span class="toc-text">Spring AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-AOP织入实现"><span class="toc-number">6.</span> <span class="toc-text">Spring AOP织入实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AopProxyFactory类图结构"><span class="toc-number">6.1.</span> <span class="toc-text">AopProxyFactory类图结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AopProxyFactory实现机制"><span class="toc-number">6.2.</span> <span class="toc-text">AopProxyFactory实现机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ProxyFactory类图结构"><span class="toc-number">6.3.</span> <span class="toc-text">ProxyFactory类图结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ProxyFactory实现机制"><span class="toc-number">6.4.</span> <span class="toc-text">ProxyFactory实现机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何做到自动代理"><span class="toc-number">6.5.</span> <span class="toc-text">如何做到自动代理</span></a></li></ol></li></ol>
+		
+		</div>
+		
+		<h3 id="一句话解释AOP"><a href="#一句话解释AOP" class="headerlink" title="一句话解释AOP"></a>一句话解释AOP</h3><blockquote>
+<p>AOP（Aspect Oriented Programming）面向方面编程。关注业务流程中的横向（公共）逻辑，将其进行封装织入到对应的横向切入点位置。</p>
+</blockquote>
+<h3 id="静态AOP与动态AOP"><a href="#静态AOP与动态AOP" class="headerlink" title="静态AOP与动态AOP"></a>静态AOP与动态AOP</h3><ol>
+<li>静态AOP主要是基于编译器，将横向业务逻辑代码通过编译器织入到对应的横切点来实现,代表有AspectJ。优点在于最终织入后还是标准的class文件，不会有性能损失。缺点是织入到class如果要改动横向逻辑需要重新编译。</li>
+<li>动态AOP基于反射或字节码操作技术，在类加载或运行中针对横切点织入横向逻辑。 优点灵活， 缺点在于运行时操作字节码对性能会有损失。代表有sping aop， jboss aop</li>
+</ol>
+<h3 id="Aop中的名词"><a href="#Aop中的名词" class="headerlink" title="Aop中的名词"></a>Aop中的名词</h3><ol>
+<li><strong>Joinpoint</strong>代表具体的切入点，比如某个方法开始执行，字段设置等。</li>
+<li><strong>Pointcut</strong> 基于一种方式（正则匹配，直接指定joinpoint名称等）去查找匹配对应的joinpoint点。</li>
+<li><strong>Advice</strong>代表横向织入逻辑载体， 有before advice, afterreturn advice等</li>
+<li><strong>Aspect</strong>代表横向模块的封装，对Pointcut, advice进行封装。</li>
+<li><strong>织入器</strong> 将横向逻辑织入到我们的业务代码中。 如：spirng aop中有ProxyFactory， AspectJ aop是基于编译器织入， jboss aop基于类加载织入。</li>
+<li><strong>目标对象</strong>也就是我们要被织入横向逻辑的对象。</li>
+</ol>
+<h3 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h3><ol>
+<li>java中的动态代理， 基于java.lang.reflect.Proxy &amp; java.lang.reflect.InvocationHandler实现。将横向逻辑载体织入到InvocationHandler， 再通过Proxy返回代理对象供系统其他对象调用。缺点在于必须要实现接口， 基于接口生成代理类。</li>
+<li>动态字节码操作技术，代表有Cglib， ASM。 通过对目标类继承，覆盖父类的方法来实现横向业务逻辑， 然后返回这个子类对象供系统其他对象调用。</li>
+</ol>
+<h3 id="Spring-AOP"><a href="#Spring-AOP" class="headerlink" title="Spring AOP"></a>Spring AOP</h3><p>spring aop对aop中的各种概念做了实现， 针对方法（已经足够了，如果基于字段破坏来面向对象的理念）进行织入。需要说明的是AOP中Aspect在spring里面称为Advisor。</p>
+<h3 id="Spring-AOP织入实现"><a href="#Spring-AOP织入实现" class="headerlink" title="Spring AOP织入实现"></a>Spring AOP织入实现</h3><p>Spring aop提供来ProxyFactory &amp; ProxyFactoryBean来实现横向织入。</p>
+<h4 id="AopProxyFactory类图结构"><a href="#AopProxyFactory类图结构" class="headerlink" title="AopProxyFactory类图结构"></a>AopProxyFactory类图结构</h4><p><img src="http://note.youdao.com/yws/res/13405/WEBRESOURCEbfe8c78856ac338ddbe52d3ea6d2f7da" alt="AopProxyFactory.png"></p>
+<h4 id="AopProxyFactory实现机制"><a href="#AopProxyFactory实现机制" class="headerlink" title="AopProxyFactory实现机制"></a>AopProxyFactory实现机制</h4><p>抽象工厂，并提供DefaultAopProxyFactory基于不同的配置createAopProxy()实现代理对象创建</p>
+<h4 id="ProxyFactory类图结构"><a href="#ProxyFactory类图结构" class="headerlink" title="ProxyFactory类图结构"></a>ProxyFactory类图结构</h4><p><img src="http://note.youdao.com/yws/res/13438/WEBRESOURCE51d443f64f65867ba55b9063fb48c6f4" alt="proxyfactory.png"></p>
+<h4 id="ProxyFactory实现机制"><a href="#ProxyFactory实现机制" class="headerlink" title="ProxyFactory实现机制"></a>ProxyFactory实现机制</h4><ol>
+<li>继承AdvisedSupport，可以对aop进行必要的横向信息配置。如pointcut，advice等</li>
+<li>持有AopProxyFactory, 创建织入横向逻辑代理对象</li>
+<li>通过getProxy()获取代理对象</li>
+</ol>
+<h4 id="如何做到自动代理"><a href="#如何做到自动代理" class="headerlink" title="如何做到自动代理"></a>如何做到自动代理</h4><p>通过ProxyFactory&amp;ProxyFactoryBean我们可以一个一个的生成织入横向逻辑的代理对象。 当我们通过容器getBean()时，如何实现自动返回代理对象呢？ 基于ioc中，bean初始化流程我们知道可以通过BeanPostProcesser对bean做进一步装配， 比如我们可以实现一个如下的BeanPostProcesser来实现返回代理对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">if(复合织入拦截条件) &#123;</span><br><span class="line">    return createProxyBean();</span><br><span class="line">&#125;</span><br><span class="line">return createBean();</span><br></pre></td></tr></table></figure>
+
+<p>其实spring中提供来AutoProxyCreator来实现返回代理对象，具体实现有BeanNameAutoProxyCreator，DefaultAdvisorAutoProxyCreator（这个就是aop自动拦截的实现）</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Spring/">Spring</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Java/">Java</a><a href="/tags/Spring/">Spring</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://dengtao.com/2015/04/12/spring/%E8%AE%A4%E8%AF%86AOP/" data-title="认识AOP | Tom Blog" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/10/12/dubbo/dubbo服务提供者总体分析/" title="dubbo服务提供者总体分析">
+  <strong>上一篇：</strong><br/>
+  <span>
+  dubbo服务提供者总体分析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/04/10/spring/国际化/"  title="国际化">
+ <strong>下一篇：</strong><br/> 
+ <span>国际化
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="Show Sidebar"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">Contents</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一句话解释AOP"><span class="toc-number">1.</span> <span class="toc-text">一句话解释AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#静态AOP与动态AOP"><span class="toc-number">2.</span> <span class="toc-text">静态AOP与动态AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Aop中的名词"><span class="toc-number">3.</span> <span class="toc-text">Aop中的名词</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#动态代理"><span class="toc-number">4.</span> <span class="toc-text">动态代理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-AOP"><span class="toc-number">5.</span> <span class="toc-text">Spring AOP</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Spring-AOP织入实现"><span class="toc-number">6.</span> <span class="toc-text">Spring AOP织入实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#AopProxyFactory类图结构"><span class="toc-number">6.1.</span> <span class="toc-text">AopProxyFactory类图结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AopProxyFactory实现机制"><span class="toc-number">6.2.</span> <span class="toc-text">AopProxyFactory实现机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ProxyFactory类图结构"><span class="toc-number">6.3.</span> <span class="toc-text">ProxyFactory类图结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ProxyFactory实现机制"><span class="toc-number">6.4.</span> <span class="toc-text">ProxyFactory实现机制</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#如何做到自动代理"><span class="toc-number">6.5.</span> <span class="toc-text">如何做到自动代理</span></a></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="Hide Sidebar"></a></div>
+<aside class="clearfix">
+
+  
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">Categories</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/Concurrency/" title="Concurrency">Concurrency<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">Tags</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/Java/" title="Java">Java<sup>10</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Concurrency/" title="Concurrency">Concurrency<sup>7</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/JVM/" title="JVM">JVM<sup>6</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/GC/" title="GC">GC<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/zookeeper/" title="zookeeper">zookeeper<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">Links</p>
+    <ul>
+        
+    </ul>
+</div>
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	
+	<section class="info">
+		<p> Keep is Win, just do it <br/>
+			</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2019 
+		
+		<a href="/about" target="_blank" title="Deng tao">Deng tao</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="Back to Top"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>

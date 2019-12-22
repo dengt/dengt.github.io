@@ -78,36 +78,16 @@
   
 <section class="post" itemscope itemprop="blogitem">
   
-    <a href="/2016/09/10/concurrency/semaphore/" title="Semaphore机制" itemprop="url">
+    <a href="/2016/09/10/concurrency/cyclicbarrier/" title="CyclicBarrier机制" itemprop="url">
   
-    <h1 itemprop="name">Semaphore机制</h1>
+    <h1 itemprop="name">CyclicBarrier机制</h1>
     
      
-           <p itemprop="description" >作用控制同时访问特定资源的线程数量
-案例1234567891011121314class Pool &amp;#123;   private static final int MAX_AVAILABLE &amp;#x3D; 100;   private final Semaphore avai</p>
+           <p itemprop="description" >作用使多个线程同时到达某个位置，直到最后一个线程到达时再开始执行。
+使用案例123456789101112131415161718192021222324252627282930313233343536373839404142class Solver &amp;#123;   final</p>
         
     
     <time datetime="2016-09-09T16:00:00.000Z" itemprop="datePublished">2016-09-10</time>
-  </a>
-</section>
-
-
-
-
-
-
-  
-<section class="post" itemscope itemprop="blogitem">
-  
-    <a href="/2015/11/16/dubbo/zookeeper集群配置/" title="zookeeper集群配置" itemprop="url">
-  
-    <h1 itemprop="name">zookeeper集群配置</h1>
-    
-     
-           <p itemprop="description" >zookeeper作为apache的开源项目， 拥有强大的功能。 平时项目中， dubbo kafka等一些开源框架需要用到， 有时业务需要也会用到。 zookeeper主要业务场景： 分布式协调服务（主要还是基于watch机制）， 注册表（由于zookeeper的node节点开</p>
-        
-    
-    <time datetime="2015-11-15T16:00:00.000Z" itemprop="datePublished">2015-11-16</time>
   </a>
 </section>
 
@@ -129,6 +109,26 @@
 第一时间查看消息中心日志，发现果不其然出现报错：
 
 1234567MessageServ</p>
+        
+    
+    <time datetime="2015-11-15T16:00:00.000Z" itemprop="datePublished">2015-11-16</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2015/11/16/dubbo/zookeeper集群配置/" title="zookeeper集群配置" itemprop="url">
+  
+    <h1 itemprop="name">zookeeper集群配置</h1>
+    
+     
+           <p itemprop="description" >zookeeper作为apache的开源项目， 拥有强大的功能。 平时项目中， dubbo kafka等一些开源框架需要用到， 有时业务需要也会用到。 zookeeper主要业务场景： 分布式协调服务（主要还是基于watch机制）， 注册表（由于zookeeper的node节点开</p>
         
     
     <time datetime="2015-11-15T16:00:00.000Z" itemprop="datePublished">2015-11-16</time>
@@ -208,6 +208,106 @@
 
 
 
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2015/04/12/spring/认识AOP/" title="认识AOP" itemprop="url">
+  
+    <h1 itemprop="name">认识AOP</h1>
+    
+     
+           <p itemprop="description" >一句话解释AOP
+AOP（Aspect Oriented Programming）面向方面编程。关注业务流程中的横向（公共）逻辑，将其进行封装织入到对应的横向切入点位置。
+
+静态AOP与动态AOP
+静态AOP主要是基于编译器，将横向业务逻辑代码通过编译器织入到对应的横切点来实现,</p>
+        
+    
+    <time datetime="2015-04-11T16:00:00.000Z" itemprop="datePublished">2015-04-12</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2015/04/10/spring/国际化/" title="国际化" itemprop="url">
+  
+    <h1 itemprop="name">国际化</h1>
+    
+     
+           <p itemprop="description" >spring提供了国际化信息支持，提供了MessageSource接口抽象
+
+MessageSourceMessageSource是Spring定义的国际化信息接口抽象，ApplicationContext也继承了这个接口拥有国际化信息支持。
+123456interface Me</p>
+        
+    
+    <time datetime="2015-04-09T16:00:00.000Z" itemprop="datePublished">2015-04-10</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2015/04/08/spring/统一资源访问/" title="统一资源访问" itemprop="url">
+  
+    <h1 itemprop="name">统一资源访问</h1>
+    
+     
+           <p itemprop="description" >Spring对资源做了统一， 提供ResourceLoder来加载资源策略，Resource对资源进行抽象
+
+Resource对于Spring来说，Resource代表资源抽象，定义来资源访问等方法。 具体有如下实现：
+
+ByteArrayResource 代表内存字节数组的资源</p>
+        
+    
+    <time datetime="2015-04-07T16:00:00.000Z" itemprop="datePublished">2015-04-08</time>
+  </a>
+</section>
+
+
+
+
+
+
+  
+<section class="post" itemscope itemprop="blogitem">
+  
+    <a href="/2015/04/01/spring/认识IOC/" title="认识IOC" itemprop="url">
+  
+    <h1 itemprop="name">认识IOC</h1>
+    
+     
+           <p itemprop="description" >一句话解释ioc
+IOC可以解藕业务对象之间的依赖关系绑定方式。 “不要找我，有需要我会通知你”
+
+使用IOC获得了什么
+对象依赖关系解藕
+便于测试
+统一了对象管理
+便于拓展
+
+IOC Provider的基本职责1. 对象的构建与管理在IOC场景里面，业务对象不再关心依赖对象如何</p>
+        
+    
+    <time datetime="2015-03-31T16:00:00.000Z" itemprop="datePublished">2015-04-01</time>
+  </a>
+</section>
+
+
+
+
+
+
 
   <nav id="page-nav" class="clearfix unexpand">
     <a class="extend prev" rel="prev" href="/page/2/">&lt;span&gt;&lt;&#x2F;span&gt;Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
@@ -241,6 +341,10 @@
 		  
 		
 		  
+			<li><a href="/categories/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+		  
+		
+		  
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
 		  
 		
@@ -258,6 +362,10 @@
 		<ul class="clearfix">
 		
 			
+				<li><a href="/tags/Java/" title="Java">Java<sup>10</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
 			
 		
@@ -270,11 +378,11 @@
 			
 		
 			
-				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+				<li><a href="/tags/Spring/" title="Spring">Spring<sup>4</sup></a></li>
 			
 		
 			

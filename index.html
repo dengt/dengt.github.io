@@ -149,20 +149,18 @@ innodb中， 主键索引也被称为聚镞索引, 叶子节点存储是的数�
   
 <section class="post" itemscope itemprop="blogitem">
   
-    <a href="/2018/10/18/mysql/关于count函数/" title="关于count函数" itemprop="url">
+    <a href="/2018/10/18/mysql/mysql索引总结/" title="mysql索引总结" itemprop="url">
   
-    <h1 itemprop="name">关于count函数</h1>
+    <h1 itemprop="name">mysql索引总结</h1>
     
      
-           <p itemprop="description" >在分析前，需要知道的是:
+           <p itemprop="description" >目的， 解决的问题
 
+索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方
 
-server层是要什么给是吗
-innodb只给必要的值
-优化器只优化了count(*)
+原理
 
-count(*)优化器是做过优化的，不需要从存储引擎拉数据解析，所以只需要在server层判断释放为null累加
-count（1）遍历引擎整张表，但不会取值，在</p>
+通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型</p>
         
     
     <time datetime="2018-10-17T16:00:00.000Z" itemprop="datePublished">2018-10-18</time>
@@ -177,18 +175,20 @@ count（1）遍历引擎整张表，但不会取值，在</p>
   
 <section class="post" itemscope itemprop="blogitem">
   
-    <a href="/2018/10/18/mysql/mysql索引总结/" title="mysql索引总结" itemprop="url">
+    <a href="/2018/10/18/mysql/关于count函数/" title="关于count函数" itemprop="url">
   
-    <h1 itemprop="name">mysql索引总结</h1>
+    <h1 itemprop="name">关于count函数</h1>
     
      
-           <p itemprop="description" >目的， 解决的问题
+           <p itemprop="description" >在分析前，需要知道的是:
 
-索引就是为了提升查询效率， 基于索引可以快速的查询到目标数据结果。比如去火车站， 飞机场， 商场的某个地方
 
-原理
+server层是要什么给是吗
+innodb只给必要的值
+优化器只优化了count(*)
 
-通过建立有效的方式缩小要查找数据的范围， 查询时只需要通过索引目录即可快速的查询到数据。 以innoDB为例：使用的是B+树实现索引结构模型</p>
+count(*)优化器是做过优化的，不需要从存储引擎拉数据解析，所以只需要在server层判断释放为null累加
+count（1）遍历引擎整张表，但不会取值，在</p>
         
     
     <time datetime="2018-10-17T16:00:00.000Z" itemprop="datePublished">2018-10-18</time>
@@ -363,6 +363,10 @@ index nested-loop join (NLJ)例如：
 		  
 		
 		  
+			<li><a href="/categories/Spring/" title="Spring">Spring<sup>4</sup></a></li>
+		  
+		
+		  
 			<li><a href="/categories/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
 		  
 		
@@ -380,6 +384,10 @@ index nested-loop join (NLJ)例如：
 		<ul class="clearfix">
 		
 			
+				<li><a href="/tags/Java/" title="Java">Java<sup>10</sup></a></li>
+			
+		
+			
 				<li><a href="/tags/Mysql/" title="Mysql">Mysql<sup>8</sup></a></li>
 			
 		
@@ -392,11 +400,11 @@ index nested-loop join (NLJ)例如：
 			
 		
 			
-				<li><a href="/tags/Java/" title="Java">Java<sup>6</sup></a></li>
+				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
 			
 		
 			
-				<li><a href="/tags/dubbo/" title="dubbo">dubbo<sup>5</sup></a></li>
+				<li><a href="/tags/Spring/" title="Spring">Spring<sup>4</sup></a></li>
 			
 		
 			
