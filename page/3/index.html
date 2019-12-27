@@ -170,10 +170,11 @@
     <h1 itemprop="name">dubbo服务调用者总体分析</h1>
     
      
-       <p itemprop="description" >之前对服务提供者进行了分析， 下面我们对调用者也分析一下。大致流程差不多
-整体步骤
-通过容器启动，这里以spring container为例。启动后会加载我们配置的spring xml文件。 
-我们通过注解或者xml形式定义协议， 注册中心， 服务等。 spring会初始化这些b</p>
+       <p itemprop="description" >之前对服务提供者进行了分析， 下面对调用者也分析一下。
+引用服务步骤
+通过容器启动，这里以spring container为例, 启动后会加载我们xml文件。 
+基于DubboBeanDefinitionParser解析生成BeanDefinition注册到spring容器中。
+</p>
       
     
     <time datetime="2015-10-13T16:00:00.000Z" itemprop="datePublished">2015-10-14</time>
@@ -193,11 +194,11 @@
     <h1 itemprop="name">dubbo服务提供者总体分析</h1>
     
      
-       <p itemprop="description" >结合之前提到的spi知识点， 我们对服务提供者从服务启动-》服务注册等流程整体分析一遍。
-整体步骤
-通过容器启动，这里以spring container为例。启动后会加载我们配置的spring xml文件。 
-我们通过注解或者xml形式定义协议， 注册中心， 服务等。 sprin</p>
-      
+           <p itemprop="description" >结合之前提到的spi知识点， 我们对服务提供者从服务启动-》服务注册等流程整体分析一遍。
+服务导出流程
+通过容器启动，这里以spring container为例。启动后会加载并解析我们配置的xml文件。 
+我们通过注解或者xml形式定义协议， 注册中心， 服务等， spring会</p>
+        
     
     <time datetime="2015-10-11T16:00:00.000Z" itemprop="datePublished">2015-10-12</time>
   </a>
